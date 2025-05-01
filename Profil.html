@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ChicCloset - Location de vêtements de luxe</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #7C3AED;  /* Violet ChicCloset */
+            --primary-dark: #5B21B6;
+            --secondary: #F59E0B; /* Or */
+            --accent: #10B981;   /* Vert */
+            --text-light: #f3f4f6;
+            --text-dark: #1f2937;
+            --bg-light: #f8f9fa;
+            --bg-dark: #0f0f0f;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.5;
+            padding-bottom: 80px;
+        }
+
+        .app-container {
+            max-width: 428px;
+            min-height: 100vh;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .status-bar {
+            background: var(--bg-dark);
+            height: 24px;
+            color: white;
+            font-size: 12px;
+            padding: 2px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .screen {
+            min-height: calc(100vh - 104px);
+            opacity: 0;
+            display: none;
+            transition: opacity 0.3s ease;
+            padding-bottom: 80px;
+        }
+
+        .screen.active {
+            opacity: 1;
+            display: block;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 12px 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 24px;
+            z-index: 100;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 428px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            border-top: 1px solid #eaeaea;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            color: #9ca3af;
+            transition: all 0.2s;
+            padding: 0 10px;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .clothing-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            background: white;
+        }
+
+        .clothing-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
+            border-color: var(--primary);
+        }
+
+        .rating-stars {
+            color: #FBBF24;
+        }
+
+        .brand-badge {
+            background-color: #EDE9FE;
+            color: var(--primary-dark);
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .search-bar {
+            background-color: white;
+            border-radius: 24px;
+            padding: 8px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .filter-chip {
+            background-color: #EDE9FE;
+            color: var(--primary-dark);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .filter-chip.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: white;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 15, 15, 0.95);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .loading-screen.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .price-tag {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: var(--primary-dark);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-badge {
+            display: inline-flex;
+            align-items: center;
+            background-color: #EDE9FE;
+            color: var(--text-dark);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        .feature-badge i {
+            margin-right: 4px;
+            color: var(--primary);
+        }
+
+        .review-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .booking-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px;
+            border-radius: 8px;
+            background-color: #f3f4f6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .calendar-day.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .calendar-day.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .time-slot {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 4px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .time-slot.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .feature-toggle {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .feature-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .chat-bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .chat-bubble.user {
+            background-color: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble.host {
+            background-color: #f3f4f6;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .verified-badge {
+            background-color: #D1FAE5;
+            color: #065F46;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .security-badge {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* Badges spécifiques aux marques */
+        .chanel-badge {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .dior-badge {
+            background-color: #EFF6FF;
+            color: #1E40AF;
+        }
+
+        .gucci-badge {
+            background-color: #ECFDF5;
+            color: #047857;
+        }
+
+        .armani-badge {
+            background-color: #EDE9FE;
+            color: #5B21B6;
+        }
+
+        .clothing-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 16px;
+        }
+        
+        .clothing-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .size-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+
+        .size-item:last-child {
+            border-bottom: none;
+        }
+
+        .size-available {
+            color: #10B981;
+            font-weight: 600;
+        }
+
+        .size-unavailable {
+            color: #EF4444;
+        }
+
+        .clothing-type-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .occasion-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Barre d'état -->
+        <div class="status-bar">
+            <span>12:30</span>
+            <div>
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi ml-2"></i>
+                <i class="fas fa-battery-full ml-2"></i>
+            </div>
+        </div>
+
+        <!-- En-tête -->
+        <header class="app-header">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-tshirt text-xl mr-2"></i>
+                    <h1 class="text-xl font-bold">ChicCloset</h1>
+                </div>
+                <div>
+                    <i class="fas fa-bell text-xl mr-4"></i>
+                    <i class="fas fa-user text-xl"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Écran d'accueil -->
+        <div class="screen active px-5 py-4" id="homeScreen">
+            <div class="search-bar mb-4">
+                <div class="flex items-center">
+                    <i class="fas fa-search text-gray-400 mr-2"></i>
+                    <input type="text" placeholder="Rechercher un article..." class="flex-grow outline-none text-sm bg-transparent">
+                    <button class="ml-2 text-gray-600">
+                        <i class="fas fa-sliders-h"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4 flex overflow-x-auto pb-2">
+                <div class="filter-chip active">
+                    <i class="fas fa-tshirt mr-1"></i>
+                    <span>Tous</span>
+                </div>
+                <div class="filter-chip">
+                    <i class="fas fa-female mr-1"></i>
+                    <span>Robes</span>
+                </div>
+                <div class="filter-chip">
+                    <i class="fas fa-male mr-1"></i>
+                    <span>Costumes</span>
+                </div>
+                <div class="filter-chip">
+                    <i class="fas fa-shopping-bag mr-1"></i>
+                    <span>Sacs</span>
+                </div>
+                <div class="filter-chip">
+                    <i class="fas fa-ring mr-1"></i>
+                    <span>Accessoires</span>
+                </div>
+            </div>
+
+            <h2 class="text-lg font-bold mb-3">Articles disponibles</h2>
+            
+            <!-- Article 1 -->
+            <div class="clothing-card">
+                <div class="price-tag">120€/sem</div>
+                <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Robe Chanel" class="clothing-image">
+                <div class="flex items-start mb-3">
+                    <div class="relative mr-3">
+                        <div class="clothing-icon bg-purple-100 text-purple-600">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Robe longue Chanel</h3>
+                        <div class="flex items-center mb-1">
+                            <span class="rating-stars mr-1">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </span>
+                            <span class="text-sm text-gray-600">4.7 (18 avis)</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i> Paris • 1.2km
+                        </p>
+                        <div class="flex items-center">
+                            <span class="security-badge mr-2">
+                                <i class="fas fa-award mr-1"></i> Authentique
+                            </span>
+                            <span class="text-sm text-green-600">
+                                <i class="fas fa-check-circle mr-1"></i> Disponible
+                            </span>
+                        </div>
+                        <div class="mt-2">
+                            <span class="chanel-badge brand-badge">Chanel</span>
+                            <span class="occasion-badge bg-pink-100 text-pink-800">Soirée</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="feature-badge"><i class="fas fa-ruler"></i> Taille 38</span>
+                        <span class="feature-badge"><i class="fas fa-palette"></i> Noir</span>
+                    </div>
+                    <button class="btn-primary px-4 py-2 text-sm">
+                        <i class="fas fa-calendar-alt mr-1"></i> Réserver
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Article 2 -->
+            <div class="clothing-card">
+                <div class="price-tag">150€/sem</div>
+                <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=736&q=80" alt="Costume Armani" class="clothing-image">
+                <div class="flex items-start mb-3">
+                    <div class="relative mr-3">
+                        <div class="clothing-icon bg-blue-100 text-blue-600">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Costume Armani</h3>
+                        <div class="flex items-center mb-1">
+                            <span class="rating-stars mr-1">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </span>
+                            <span class="text-sm text-gray-600">4.2 (24 avis)</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <i class="fas fa-map-marker-alt mr-1"></i> Lyon • 2.5km
+                        </span>
+                        <span class="text-sm text-green-600">
+                            <i class="fas fa-check-circle mr-1"></i> Disponible
+                        </span>
+                        <div class="mt-2">
+                            <span class="armani-badge brand-badge">Armani</span>
+                            <span class="occasion-badge bg-blue-100 text-blue-800">Mariage</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="feature-badge"><i class="fas fa-ruler"></i> Taille 52</span>
+                        <span class="feature-badge"><i class="fas fa-palette"></i> Bleu nuit</span>
+                    </div>
+                    <button class="btn-primary px-4 py-2 text-sm">
+                        <i class="fas fa-calendar-alt mr-1"></i> Réserver
+                    </button>
+                </div>
+            </div>
+            
+            <h2 class="text-lg font-bold mb-3 mt-6">Nouveautés</h2>
+            
+            <!-- Article 3 -->
+            <div class="clothing-card">
+                <div class="price-tag">180€/sem</div>
+                <img src="https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Robe Dior" class="clothing-image">
+                <div class="flex items-start mb-3">
+                    <div class="relative mr-3">
+                        <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Propriétaire" class="w-16 h-16 rounded-full object-cover">
+                        <div class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Robe cocktail Dior</h3>
+                        <p class="text-sm text-gray-600">Collection printemps 2023</p>
+                        <div class="flex items-center mb-1">
+                            <span class="rating-stars mr-1">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </span>
+                            <span class="text-sm text-gray-600">4.0 (12 avis)</span>
+                        </div>
+                        <div class="mt-2">
+                            <span class="dior-badge brand-badge">Dior</span>
+                            <span class="occasion-badge bg-yellow-100 text-yellow-800">Cocktail</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <span class="feature-badge"><i class="fas fa-ruler"></i> Taille 40</span>
+                        <span class="feature-badge"><i class="fas fa-palette"></i> Rouge</span>
+                    </div>
+                    <button class="btn-primary px-4 py-2 text-sm">
+                        <i class="fas fa-glass-cheers mr-1"></i> Soirée
+                    </button>
+                </div>
+            </div>
+            
+            <button class="w-full mt-4 p-3 text-center text-gray-600 font-medium border border-gray-200 rounded-lg hover:bg-gray-50">
+                <i class="fas fa-plus mr-2"></i> Voir plus d'articles
+            </button>
+        </div>
+
+        <!-- Écran de détails d'un article -->
+        <div class="screen px-5 py-4" id="clothingScreen">
+            <div class="flex items-center mb-6">
+                <button class="mr-3 text-gray-600" id="backButton">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-xl font-bold">Détails de l'article</h2>
+            </div>
+            
+            <div class="mb-6">
+                <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80" alt="Robe Chanel" class="w-full h-64 object-cover rounded-lg mb-3">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xl font-bold">Robe longue Chanel</h3>
+                    <div class="price-tag">120€/sem</div>
+                </div>
+                
+                <div class="flex items-center mb-4">
+                    <div class="rating-stars mr-2">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <span class="text-sm text-gray-600">4.7 (18 avis)</span>
+                </div>
+                
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-map-marker-alt text-gray-500 w-6"></i>
+                    <span class="ml-2">Paris • 1.2km</span>
+                </div>
+                
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-user text-gray-500 w-6"></i>
+                    <span class="ml-2">Loué par Claire D.</span>
+                </div>
+                
+                <div class="flex">
+                    <span class="chanel-badge brand-badge mr-2">
+                        <i class="fas fa-crown mr-1"></i> Chanel
+                    </span>
+                    <span class="verified-badge">
+                        <i class="fas fa-badge-check mr-1"></i> Authentique
+                    </span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="font-bold mb-2">Description</h4>
+                <p class="text-sm mb-4">Robe longue Chanel en soie noire, collection automne-hiver 2022. Portée seulement deux fois pour des événements spéciaux. Parfait état, avec étiquette d'origine.</p>
+                
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-ruler text-gray-500 w-6"></i>
+                    <span class="ml-2">Taille: 38 (FR)</span>
+                </div>
+                <div class="flex items-center mb-2">
+                    <i class="fas fa-palette text-gray-500 w-6"></i>
+                    <span class="ml-2">Couleur: Noir</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-tag text-gray-500 w-6"></i>
+                    <span class="ml-2">État: Comme neuf</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="font-bold mb-2">Tailles disponibles</h4>
+                <div class="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
+                    <div class="size-item">
+                        <span>36 (FR)</span>
+                        <span class="size-unavailable">Indisponible</span>
+                    </div>
+                    <div class="size-item">
+                        <span>38 (FR)</span>
+                        <span class="size-available">Disponible</span>
+                    </div>
+                    <div class="size-item">
+                        <span>40 (FR)</span>
+                        <span class="size-available">Disponible</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="font-bold mb-2">Occasions recommandées</h4>
+                <div class="flex flex-wrap">
+                    <span class="clothing-type-badge bg-pink-100 text-pink-800"><i class="fas fa-glass-cheers mr-1"></i> Soirée</span>
+                    <span class="clothing-type-badge bg-purple-100 text-purple-800"><i class="fas fa-heart mr-1"></i> Mariage</span>
+                    <span class="clothing-type-badge bg-blue-100 text-blue-800"><i class="fas fa-briefcase mr-1"></i> Événement pro</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="font-bold mb-2">Services additionnels</h4>
+                <div class="flex flex-wrap">
+                    <span class="time-slot active">Nettoyage (+20€)</span>
+                    <span class="time-slot">Assurance (+15€)</span>
+                    <span class="time-slot">Livraison (+10€)</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h4 class="font-bold mb-2">Avis récents</h4>
+                
+                <!-- Avis 1 -->
+                <div class="review-card mb-3">
+                    <div class="flex items-center mb-2">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-gray-600"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold">Amélie S.</h5>
+                            <div class="flex items-center">
+                                <span class="rating-stars mr-1">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </span>
+                                <span class="text-xs text-gray-600">il y a 2 jours</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-2">Cette robe est absolument magnifique ! Parfaitement entretenue et exactement comme sur les photos. J'ai reçu tellement de compliments lors du gala.</p>
+                    <div class="flex">
+                        <span class="text-xs text-gray-600 mr-3"><i class="fas fa-thumbs-up mr-1"></i> 5 utiles</span>
+                        <span class="text-xs text-gray-600"><i class="fas fa-comment mr-1"></i> Répondre</span>
+                    </div>
+                </div>
+                
+                <!-- Avis 2 -->
+                <div class="review-card">
+                    <div class="flex items-center mb-2">
+                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                            <i class="fas fa-user text-gray-600"></i>
+                        </div>
+                        <div>
+                            <h5 class="font-bold">Sophie M.</h5>
+                            <div class="flex items-center">
+                                <span class="rating-stars mr-1">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </span>
+                                <span class="text-xs text-gray-600">il y a 1 semaine</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm mb-2">Très belle robe, livraison rapide. Un peu juste au niveau de la taille, vérifiez bien les mesures avant de réserver.</p>
+                    <div class="flex">
+                        <span class="text-xs text-gray-600 mr-3"><i class="fas fa-thumbs-up mr-1"></i> 3 utiles</span>
+                        <span class="text-xs text-gray-600"><i class="fas fa-comment mr-1"></i> Répondre</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button class="flex-1 btn-primary py-3 font-bold">
+                    <i class="fas fa-calendar-alt mr-2"></i> Réserver
+                </button>
+                <button class="flex-1 bg-gray-100 text-gray-700 py-3 font-bold rounded-lg">
+                    <i class="fas fa-comments mr-2"></i> Contacter
+                </button>
+            </div>
+        </div>
+
+        <!-- Écran de chat -->
+        <div class="screen px-5 py-4" id="chatScreen">
+            <div class="flex items-center mb-6">
+                <button class="mr-3 text-gray-600" id="backButtonChat">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="flex items-center">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Propriétaire" class="w-10 h-10 rounded-full object-cover mr-3">
+                    <div>
+                        <h2 class="text-xl font-bold">Claire D.</h2>
+                        <p class="text-xs text-gray-600">En ligne</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-4 p-3 bg-gray-100 rounded-lg">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h4 class="font-bold">Robe longue Chanel</h4>
+                        <p class="text-sm text-gray-600">120€/sem • Paris</p>
+                    </div>
+                    <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                        Disponible
+                    </span>
+                </div>
+            </div>
+            
+            <div class="flex flex-col mb-4" style="height: 60vh; overflow-y: auto;">
+                <!-- Message du propriétaire -->
+                <div class="chat-bubble host">
+                    Bonjour ! Vous êtes intéressé par la location de ma robe Chanel ?
+                    <div class="chat-time">12:05</div>
+                </div>
+                
+                <!-- Message de l'utilisateur -->
+                <div class="chat-bubble user">
+                    Bonjour, oui je cherche une robe pour un mariage le 15 juillet. Est-elle disponible ce week-end ?
+                    <div class="chat-time">12:07</div>
+                </div>
+                
+                <!-- Message du propriétaire -->
+                <div class="chat-bubble host">
+                    Oui, elle est disponible du 10 au 17 juillet. Elle est en taille 38, est-ce que cela vous convient ?
+                    <div class="chat-time">12:09</div>
+                </div>
+                
+                <!-- Message de l'utilisateur -->
+                <div class="chat-bubble user">
+                    Oui parfait ! Pourriez-vous me confirmer qu'elle est bien noire comme sur les photos ?
+                    <div class="chat-time">12:10</div>
+                </div>
+            </div>
+            
+            <div class="flex items-center">
+                <input type="text" placeholder="Écrivez un message..." class="flex-grow border rounded-full py-2 px-4 mr-2">
+                <button class="w-10 h-10 rounded-full bg-purple-600 text-white flex items-center justify-center">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Écran de réservation -->
+        <div class="screen px-5 py-4" id="bookingScreen">
+            <div class="flex items-center mb-6">
+                <button class="mr-3 text-gray-600" id="backButtonBooking">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-xl font-bold">Réserver un article</h2>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex items-center mb-4">
+                    <div class="clothing-icon bg-purple-100 text-purple-600 mr-3">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Robe longue Chanel</h3>
+                        <p class="text-sm text-gray-600">
+                            Paris • 120€/sem
+                        </p>
+                        <div class="flex items-center">
+                            <span class="rating-stars mr-1">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </span>
+                            <span class="text-sm">4.7 (18 avis)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-bold mb-3">Type d'événement</h4>
+                    <div class="flex flex-wrap">
+                        <div class="time-slot">Mariage</div>
+                        <div class="time-slot active">Soirée</div>
+                        <div class="time-slot">Événement pro</div>
+                        <div class="time-slot">Autre</div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-bold mb-3">Période de location</h4>
+                    <div class="booking-calendar">
+                        <div class="calendar-day disabled">L</div>
+                        <div class="calendar-day disabled">M</div>
+                        <div class="calendar-day disabled">M</div>
+                        <div class="calendar-day disabled">J</div>
+                        <div class="calendar-day disabled">V</div>
+                        <div class="calendar-day">1</div>
+                        <div class="calendar-day">2</div>
+                        <div class="calendar-day">3</div>
+                        <div class="calendar-day">4</div>
+                        <div class="calendar-day active">5</div>
+                        <div class="calendar-day">6</div>
+                        <div class="calendar-day">7</div>
+                        <div class="calendar-day">8</div>
+                        <div class="calendar-day">9</div>
+                        <div class="calendar-day">10</div>
+                        <div class="calendar-day">11</div>
+                        <div class="calendar-day">12</div>
+                        <div class="calendar-day">13</div>
+                        <div class="calendar-day">14</div>
+                        <div class="calendar-day">15</div>
+                        <div class="calendar-day">16</div>
+                        <div class="calendar-day">17</div>
+                        <div class="calendar-day">18</div>
+                        <div class="calendar-day">19</div>
+                        <div class="calendar-day">20</div>
+                        <div class="calendar-day">21</div>
+                        <div class="calendar-day">22</div>
+                        <div class="calendar-day">23</div>
+                        <div class="calendar-day">24</div>
+                        <div class="calendar-day">25</div>
+                        <div class="calendar-day">26</div>
+                        <div class="calendar-day">27</div>
+                        <div class="calendar-day">28</div>
+                    </div>
+                    <div class="flex items-center mt-2">
+                        <i class="fas fa-calendar-day text-gray-500 mr-2"></i>
+                        <span class="text-sm">Du 10 au 17 juillet 2023</span>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-bold mb-3">Taille</h4>
+                    <select class="w-full border rounded-lg p-3 mb-3">
+                        <option>38 (FR)</option>
+                        <option>40 (FR)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="font-bold mb-3">Services additionnels</h4>
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="cleaning" checked class="mr-2">
+                        <label for="cleaning">Nettoyage professionnel (+20€)</label>
+                    </div>
+                    
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="insurance" checked class="mr-2">
+                        <label for="insurance">Assurance complète (+15€)</label>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="delivery" class="mr-2">
+                        <label for="delivery">Livraison express (+10€)</label>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-100 rounded-lg p-4 mb-6">
+                    <div class="flex justify-between mb-2">
+                        <span>Location 1 semaine</span>
+                        <span>120€</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Nettoyage</span>
+                        <span>20€</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>Assurance</span>
+                        <span>15€</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span class="text-purple-800">155€</span>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2">Commission ChicCloset (20%) incluse</p>
+                </div>
+                
+                <button class="w-full btn-primary py-3 font-bold mb-3">
+                    <i class="fas fa-credit-card mr-2"></i> Confirmer la réservation
+                </button>
+                
+                <p class="text-xs text-gray-600 text-center">
+                    Assurance contre taches et dommages incluse. Annulation possible jusqu'à 48h avant.
+                </p>
+            </div>
+        </div>
+
+        <!-- Écran Profil -->
+        <div class="screen px-5 py-4" id="profileScreen">
+            <div class="flex items-center mb-6">
+                <button class="mr-3 text-gray-600" id="backButtonProf">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2 class="text-xl font-bold">Mon profil</h2>
+            </div>
+            
+            <div class="text-center mb-6">
+                <div class="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                    <i class="fas fa-user text-3xl text-gray-600"></i>
+                </div>
+                <h2 class="text-xl font-bold">Sophie M.</h2>
+                <p class="text-gray-600 text-sm">Membre depuis juin 2023</p>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">Mes locations</h3>
+                
+                <div class="clothing-card mb-3">
+                    <div class="flex items-start">
+                        <div class="clothing-icon bg-purple-100 text-purple-600 mr-3">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold">Robe Chanel</h4>
+                            <p class="text-sm text-gray-600 mb-1">
+                                <i class="fas fa-calendar-alt mr-1"></i> 10-17 juillet 2023
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-1"></i> Paris
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-3">
+                        <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                            <i class="fas fa-check mr-1"></i> Confirmé
+                        </span>
+                        <span class="text-sm font-bold">155€</span>
+                    </div>
+                </div>
+                
+                <button class="w-full p-3 text-center text-gray-600 font-medium border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <i class="fas fa-history mr-2"></i> Voir l'historique complet
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">Louer mes vêtements</h3>
+                
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-3">
+                    <div class="p-4 border-b">
+                        <div class="flex items-center">
+                            <i class="fas fa-euro-sign text-gray-500 w-6"></i>
+                            <span class="ml-2">Gagnez jusqu'à 80% du prix de location</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-shield-alt text-gray-500 w-6"></i>
+                            <span class="ml-2">Assurance incluse contre dommages</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="w-full p-3 text-center text-white font-medium bg-purple-600 rounded-lg hover:bg-purple-700">
+                    <i class="fas fa-plus mr-2"></i> Louer mes articles
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-3">Paramètres</h3>
+                
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <div class="flex items-center">
+                            <i class="fas fa-bell text-gray-500 w-6"></i>
+                            <span class="ml-2">Notifications</span>
+                        </div>
+                        <label class="feature-toggle">
+                            <input type="checkbox" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <div class="flex items-center">
+                            <i class="fas fa-map-marker-alt text-gray-500 w-6"></i>
+                            <span class="ml-2">Adresse</span>
+                        </div>
+                        <span class="text-sm text-gray-500">15 Av. des Champs-Élysées, Paris</span>
+                    </div>
+                    
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <div class="flex items-center">
+                            <i class="fas fa-lock text-gray-500 w-6"></i>
+                            <span class="ml-2">Sécurité</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                    
+                    <div class="p-4 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <i class="fas fa-question-circle text-gray-500 w-6"></i>
+                            <span class="ml-2">Aide & Support</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="w-full p-3 text-center text-purple-600 font-medium border border-purple-200 rounded-lg hover:bg-purple-50">
+                <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+            </button>
+        </div>
+
+        <!-- Navigation du bas -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-screen="homeScreen">
+                <i class="fas fa-search"></i>
+                <span>Rechercher</span>
+            </div>
+            <div class="nav-item" data-screen="chatScreen">
+                <i class="fas fa-comments"></i>
+                <span>Messages</span>
+            </div>
+            <div class="nav-item" data-screen="bookingScreen">
+                <i class="fas fa-calendar-check"></i>
+                <span>Réservations</span>
+            </div>
+            <div class="nav-item" data-screen="profileScreen">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </div>
+        </nav>
+
+        <!-- Écran de chargement -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loader"></div>
+            <h3 class="text-xl font-bold mb-2 text-white">Recherche d'articles</h3>
+            <p class="text-gray-300">Analyse de vos critères...</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Récupération des éléments
+            const navItems = document.querySelectorAll('.nav-item');
+            const screens = document.querySelectorAll('.screen');
+            const loadingScreen = document.getElementById('loadingScreen');
+            const backButtons = document.querySelectorAll('[id^="backButton"]');
+            const clothingCards = document.querySelectorAll('.clothing-card .btn-primary');
+            const timeSlots = document.querySelectorAll('.time-slot');
+            const calendarDays = document.querySelectorAll('.calendar-day:not(.disabled)');
+            const filterChips = document.querySelectorAll('.filter-chip');
+            
+            // Navigation entre les écrans
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetScreen = this.getAttribute('data-screen');
+                    
+                    // Animation sur l'icône cliquée
+                    this.classList.add('active');
+                    this.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1.1)';
+                    }, 200);
+                    
+                    navItems.forEach(navItem => {
+                        if (navItem !== this) navItem.classList.remove('active');
+                    });
+                    
+                    screens.forEach(screen => {
+                        screen.classList.remove('active');
+                        if (screen.id === targetScreen) {
+                            screen.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Boutons de retour
+            backButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    screens.forEach(screen => screen.classList.remove('active'));
+                    document.getElementById('homeScreen').classList.add('active');
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                        if (navItem.getAttribute('data-screen') === 'homeScreen') {
+                            navItem.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Clic sur une carte d'article
+            clothingCards.forEach(button => {
+                button.addEventListener('click', function() {
+                    loadingScreen.classList.add('active');
+                    setTimeout(() => {
+                        loadingScreen.classList.remove('active');
+                        screens.forEach(screen => screen.classList.remove('active'));
+                        document.getElementById('clothingScreen').classList.add('active');
+                        navItems.forEach(navItem => navItem.classList.remove('active'));
+                    }, 500);
+                });
+            });
+            
+            // Filtres
+            filterChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    filterChips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Animation
+                    this.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 200);
+                });
+            });
+            
+            // Sélection des types d'événement
+            timeSlots.forEach(slot => {
+                slot.addEventListener('click', function() {
+                    timeSlots.forEach(s => s.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Sélection des jours du calendrier
+            calendarDays.forEach(day => {
+                day.addEventListener('click', function() {
+                    calendarDays.forEach(d => d.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Animation au chargement
+            setTimeout(() => {
+                document.querySelectorAll('.clothing-card').forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, index * 100);
+                });
+            }, 300);
+        });
+    </script>
+</body>
+</html>
